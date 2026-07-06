@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Itinerary</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 800px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4a90e2;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .output-section {
+      margin-bottom: 20px;
+    }
+
+    .output-section h2 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .output-section p {
+      font-size: 16px;
+      color: #555;
+    }
+
+    .output-section ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .output-section ul li {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    button {
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .go-back {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Generated Itinerary</h1>
+
+    <!-- From and To Destination Section -->
+    <div class="output-section">
+      <h2>Travel Details</h2>
+      <p><strong>From:</strong> <span id="from-destination-output"></span></p>
+      <p><strong>To:</strong> <span id="to-destination-output"></span></p>
+      <p><strong>From Date:</strong> <span id="from-date-output"></span></p>
+      <p><strong>To Date:</strong> <span id="to-date-output"></span></p>
+    </div>
+
+    <!-- Budget Section -->
+    <div class="output-section">
+      <h2>Budget</h2>
+      <p><strong>Minimum Budget (INR):</strong> <span id="budget-min-output"></span></p>
+      <p><strong>Maximum Budget (INR):</strong> <span id="budget-max-output"></span></p>
+    </div>
+
+    <!-- Number of Travelers Section -->
+    <div class="output-section">
+      <h2>Travelers</h2>
+      <p><strong>Adults (14+):</strong> <span id="adults-output"></span></p>
+      <p><strong>Children (under 14):</strong> <span id="children-output"></span></p>
+      <p><strong>Total Travelers:</strong> <span id="total-travelers-output"></span></p>
+    </div>
+
+    <!-- Preferences Section -->
+    <div class="output-section">
+      <h2>Preferences</h2>
+      <div id="preferences-output"></div>
+    </div>
+
+    <button onclick="window.history.back()">Go Back</button>
+  </div>
+
+  <script>
+    // Simulated data (this would come from the form data in a real scenario)
+    const itineraryData = {
+      fromDestination: "New York",
+      toDestination: "Los Angeles",
+      fromDate: "2024-12-01",
+      toDate: "2024-12-10",
+      budgetMin: "50,000",
+      budgetMax: "100,000",
+      numTravelers: 3,
+      adults: 2,
+      children: 1,
+      adventurePreferences: ["Mountain Climbing", "Water Sports"],
+      foodPreferences: ["Local Cuisine", "Street Food"],
+      sightseeingPreferences: ["Beaches", "Parks"],
+      touristAttractionsPreferences: ["Historical Sites", "Amusement Parks"],
+      relaxationPreferences: ["Spa", "Yoga"]
+    };
+
+    // Display the form data
+    document.getElementById('from-destination-output').textContent = itineraryData.fromDestination;
+    document.getElementById('to-destination-output').textContent = itineraryData.toDestination;
+    document.getElementById('from-date-output').textContent = itineraryData.fromDate;
+    document.getElementById('to-date-output').textContent = itineraryData.toDate;
+    document.getElementById('budget-min-output').textContent = itineraryData.budgetMin;
+    document.getElementById('budget-max-output').textContent = itineraryData.budgetMax;
+    document.getElementById('adults-output').textContent = itineraryData.adults;
+    document.getElementById('children-output').textContent = itineraryData.children;
+    document.getElementById('total-travelers-output').textContent = itineraryData.adults + itineraryData.children;
+
+    // Display preferences in a list format
+    const preferencesOutput = document.getElementById('preferences-output');
+    
+    const preferenceCategories = [
+      { category: "Adventure", preferences: itineraryData.adventurePreferences },
+      { category: "Food", preferences: itineraryData.foodPreferences },
+      { category: "Sightseeing", preferences: itineraryData.sightseeingPreferences },
+      { category: "Tourist Attractions", preferences: itineraryData.touristAttractionsPreferences },
+      { category: "Relaxation", preferences: itineraryData.relaxationPreferences }
+    ];
+
+    preferenceCategories.forEach(category => {
+      const categoryElement = document.createElement('div');
+      const categoryTitle = document.createElement('h3');
+      categoryTitle.textContent = category.category;
+      categoryElement.appendChild(categoryTitle);
+
+      const preferenceList = document.createElement('ul');
+      category.preferences.forEach(preference => {
+        const listItem = document.createElement('li');
+        listItem.textContent = preference;
+        preferenceList.appendChild(listItem);
+      });
+      
+      categoryElement.appendChild(preferenceList);
+      preferencesOutput.appendChild(categoryElement);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Trip Planner</title>
+  <style>
+    /* General Body Styling */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 650px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      max-height: 95vh;
+      transition: all 0.3s ease-in-out;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4a90e2;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      color: #333;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: #4a90e2;
+      outline: none;
+    }
+
+    .checkbox-group {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    .checkbox-group label {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .collapsible {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 16px;
+      border-radius: 8px;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .collapsible:hover {
+      background-color: #45a049;
+    }
+
+    .active {
+      background-color: #45a049;
+    }
+
+    .content {
+      padding-left: 20px;
+      display: none;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* Total Traveler Counter */
+    .total-travelers {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4a90e2;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 20px;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Trip Planner</h1>
+
+    <!-- From Destination Input -->
+    <label for="from-destination">From Destination</label>
+    <input type="text" id="from-destination" name="from-destination" placeholder="Enter starting point" required>
+
+    <!-- To Destination Input -->
+    <label for="to-destination">To Destination</label>
+    <input type="text" id="to-destination" name="to-destination" placeholder="Enter destination point" required>
+
+    <!-- Date Inputs -->
+    <label for="from-date">From Date</label>
+    <input type="date" id="from-date" name="from-date" required>
+
+    <label for="to-date">To Date</label>
+    <input type="date" id="to-date" name="to-date" required>
+
+    <!-- Preferences: Adventure -->
+     <h3>Preferences</h3>
+    <button class="collapsible">Adventure</button>
+    <div class="content" id="adventure-options">
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="adventure-options" value="extreme-sports"> Extreme Sports</label>
+        <label><input type="checkbox" name="adventure-options" value="mountain-climbing"> Mountain Climbing</label>
+        <label><input type="checkbox" name="adventure-options" value="water-sports"> Water Sports</label>
+        <label><input type="checkbox" name="adventure-options" value="hiking"> Hiking</label>
+      </div>
+    </div>
+
+    <!-- Preferences: Food -->
+    <button class="collapsible">Food</button>
+    <div class="content" id="food-options">
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="food-options" value="local-cuisine"> Local Cuisine</label>
+        <label><input type="checkbox" name="food-options" value="street-food"> Street Food</label>
+        <label><input type="checkbox" name="food-options" value="fine-dining"> Fine Dining</label>
+      </div>
+    </div>
+
+    <!-- Preferences: Sightseeing -->
+    <button class="collapsible">Site-Seeing</button>
+    <div class="content" id="sightseeing-options">
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="sightseeing-options" value="beaches"> Beaches</label>
+        <label><input type="checkbox" name="sightseeing-options" value="parks"> Parks</label>
+        <label><input type="checkbox" name="sightseeing-options" value="monuments"> Monuments</label>
+      </div>
+    </div>
+
+    <!-- Preferences: Tourist Attractions -->
+    <button class="collapsible">Tourist Attractions</button>
+    <div class="content" id="tourist-attractions-options">
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="tourist-attractions-options" value="historical-sites"> Historical Sites</label>
+        <label><input type="checkbox" name="tourist-attractions-options" value="amusement-parks"> Amusement Parks</label>
+        <label><input type="checkbox" name="tourist-attractions-options" value="wildlife-parks"> Wildlife Parks</label>
+      </div>
+    </div>
+
+    <!-- Preferences: Relaxation -->
+    <button class="collapsible">Relaxation</button>
+    <div class="content" id="relaxation-options">
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="relaxation-options" value="spa"> Spa</label>
+        <label><input type="checkbox" name="relaxation-options" value="yoga"> Yoga</label>
+        <label><input type="checkbox" name="relaxation-options" value="beach-resorts"> Beach Resorts</label>
+      </div>
+    </div>
+
+    <!-- Budget Inputs -->
+    <label for="budget-min">Minimum Budget (INR):</label>
+    <input type="number" id="budget-min" name="budget-min" placeholder="Enter minimum budget" required>
+
+    <label for="budget-max">Maximum Budget (INR):</label>
+    <input type="number" id="budget-max" name="budget-max" placeholder="Enter maximum budget" required>
+
+    <!-- Adult/Children Select -->
+    <label for="adults">Number of Adults (age 14+):</label>
+    <input type="number" id="adults" name="adults" min="0" max="10" value="1" required placeholder="Adults (14+)">
+    <label for="children">Number of Children (age below 14):</label>
+    <input type="number" id="children" name="children" min="0" max="10" value="0" required placeholder="Children (under 14)">
+
+    <!-- Traveler Counter -->
+    <p class="total-travelers">Total Travelers: <span id="total-travelers">1</span></p>
+
+    <!-- Generate Button -->
+    <button onclick="redirectToItinerary()">Generate Itinerary</button>
+  </div>
+
+  <script>
+    // Collapsible toggle logic
+    const collapsibles = document.querySelectorAll(".collapsible");
+    collapsibles.forEach(button => {
+      button.addEventListener("click", () => {
+        const content = button.nextElementSibling;
+        button.classList.toggle("active");
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
+        }
+      });
+    });
+
+    // Traveler count logic
+    function updateTravelerCount() {
+      const adults = parseInt(document.getElementById("adults").value) || 0;
+      const children = parseInt(document.getElementById("children").value) || 0;
+      const totalTravelers = adults + children;
+      document.getElementById("total-travelers").textContent = totalTravelers;
+    }
+
+    // Call updateTravelerCount() when adults or children fields are changed
+    document.getElementById("adults").addEventListener("input", updateTravelerCount);
+    document.getElementById("children").addEventListener("input", updateTravelerCount);
+
+    // Redirect to generate itinerary page
+    function redirectToItinerary() {
+      const fromDestination = document.getElementById('from-destination').value;
+      const toDestination = document.getElementById('to-destination').value;
+      const fromDate = document.getElementById('from-date').value;
+      const toDate = document.getElementById('to-date').value;
+      const budgetMin = document.getElementById('budget-min').value;
+      const budgetMax = document.getElementById('budget-max').value;
+      const numTravelers = document.getElementById('num-travelers').value;
+      const adults = document.getElementById('adults').value;
+      const children = document.getElementById('children').value;
+
+      // Collect selected preferences
+      const adventurePreferences = Array.from(document.querySelectorAll('input[name="adventure-options"]:checked')).map(el => el.value);
+      const foodPreferences = Array.from(document.querySelectorAll('input[name="food-options"]:checked')).map(el => el.value);
+      const sightseeingPreferences = Array.from(document.querySelectorAll('input[name="sightseeing-options"]:checked')).map(el => el.value);
+      const touristAttractionsPreferences = Array.from(document.querySelectorAll('input[name="tourist-attractions-options"]:checked')).map(el => el.value);
+      const relaxationPreferences = Array.from(document.querySelectorAll('input[name="relaxation-options"]:checked')).map(el => el.value);
+
+      // Process the data and redirect
+      const itineraryData = {
+        fromDestination,
+        toDestination,
+        fromDate,
+        toDate,
+        budgetMin,
+        budgetMax,
+        numTravelers,
+        adults,
+        children,
+        adventurePreferences,
+        foodPreferences,
+        sightseeingPreferences,
+        touristAttractionsPreferences,
+        relaxationPreferences,
+      };
+
+      console.log(itineraryData);
+      window.location.href = '/generate-itinerary';
+       // Change this to the actual itinerary page URL
+    }
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
