@@ -264,7 +264,16 @@ const TripPlanner = () => {
     Preferences: ${JSON.stringify(formData.preferences)}.
     Please format the response nicely in Markdown, using '### Day X:' for each day's headings and bullet points for activities. Include travel tips at the end.`;
 
-    const activeKey = apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY;
+    let activeKey = apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY;
+    if (activeKey) {
+      activeKey = activeKey.replace(/['"]/g, '').trim();
+    }
+
+    console.log('Gemini API Key Resolution:', {
+      hasUIKey: !!apiKeyInput,
+      hasEnvKey: !!process.env.REACT_APP_GEMINI_API_KEY,
+      resolvedKeyPrefix: activeKey ? activeKey.slice(0, 8) + '...' : 'none'
+    });
 
     if (!activeKey) {
       // Demo mode / Fallback immediately
@@ -279,7 +288,7 @@ const TripPlanner = () => {
 
     try {
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`,
         {
           contents: [
             {
@@ -340,7 +349,7 @@ const TripPlanner = () => {
               textAlign: 'left'
             }}
           >
-            <span style={{ fontWeight: '600' }}>⚙️ API Settings {apiKeyInput ? ' (Key Saved)' : ' (Demo/Simulation Mode)'}</span>
+            <span style={{ fontWeight: '600' }}>⚙️ API Settings {(apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY) ? ' (Key Configured)' : ' (Demo/Simulation Mode)'}</span>
             <span>{showSettings ? '▲' : '▼'}</span>
           </button>
           
