@@ -183,8 +183,6 @@ const TripPlanner = () => {
   const [itinerary, setItinerary] = useState('');
   const [itinerarySource, setItinerarySource] = useState(''); // 'live', 'mock', 'mock-fallback'
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(localStorage.getItem('gemini_api_key') || '');
-  const [showSettings, setShowSettings] = useState(false);
 
   const preferenceOptions = {
     adventure: [
@@ -235,15 +233,6 @@ const TripPlanner = () => {
     }));
   };
 
-  const handleSaveApiKey = (key) => {
-    setApiKeyInput(key);
-    if (key) {
-      localStorage.setItem('gemini_api_key', key);
-    } else {
-      localStorage.removeItem('gemini_api_key');
-    }
-  };
-
   const getTotalTravelers = () => {
     return parseInt(formData.adults) + parseInt(formData.children) || 1;
   };
@@ -264,16 +253,10 @@ const TripPlanner = () => {
     Preferences: ${JSON.stringify(formData.preferences)}.
     Please format the response nicely in Markdown, using '### Day X:' for each day's headings and bullet points for activities. Include travel tips at the end.`;
 
-    let activeKey = apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY;
+    let activeKey = process.env.REACT_APP_GEMINI_API_KEY;
     if (activeKey) {
       activeKey = activeKey.replace(/['"]/g, '').trim();
     }
-
-    console.log('Gemini API Key Resolution:', {
-      hasUIKey: !!apiKeyInput,
-      hasEnvKey: !!process.env.REACT_APP_GEMINI_API_KEY,
-      resolvedKeyPrefix: activeKey ? activeKey.slice(0, 8) + '...' : 'none'
-    });
 
     if (!activeKey) {
       // Demo mode / Fallback immediately
@@ -331,75 +314,7 @@ const TripPlanner = () => {
           AI Trip Planner
         </h1>
 
-        {/* API Settings Section */}
-        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg" style={{ fontSize: '14px' }}>
-          <button 
-            type="button" 
-            onClick={() => setShowSettings(!showSettings)}
-            className="w-full flex justify-between items-center text-gray-700 font-semibold transition-colors"
-            style={{ 
-              padding: '6px 12px', 
-              margin: 0, 
-              backgroundColor: 'transparent', 
-              color: '#4a5568',
-              border: 'none',
-              boxShadow: 'none',
-              width: '100%',
-              display: 'flex',
-              textAlign: 'left'
-            }}
-          >
-            <span style={{ fontWeight: '600' }}>⚙️ API Settings {(apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY) ? ' (Key Configured)' : ' (Demo/Simulation Mode)'}</span>
-            <span>{showSettings ? '▲' : '▼'}</span>
-          </button>
-          
-          {showSettings && (
-            <div className="mt-3 pt-3 border-t border-gray-200" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <p className="text-xs text-gray-500" style={{ margin: 0, fontSize: '11px', color: '#718096' }}>
-                Enter your Google Gemini API Key. If left empty, the app uses <strong>Demo Mode</strong> with realistic local travel plans.
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={apiKeyInput}
-                  onChange={(e) => handleSaveApiKey(e.target.value)}
-                  style={{ 
-                    flexGrow: 1, 
-                    padding: '8px 12px', 
-                    border: '1px solid #cbd5e0', 
-                    borderRadius: '6px', 
-                    fontSize: '13px',
-                    margin: 0
-                  }}
-                />
-                {apiKeyInput && (
-                  <button
-                    type="button"
-                    onClick={() => handleSaveApiKey('')}
-                    style={{ 
-                      padding: '8px 16px', 
-                      backgroundColor: '#e53e3e', 
-                      color: 'white', 
-                      borderRadius: '6px', 
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      border: 'none',
-                      margin: 0,
-                      width: 'auto',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-gray-400" style={{ margin: 0, fontSize: '10px', color: '#a0aec0' }}>
-                Saved locally in your browser storage. Never sent to any external server.
-              </p>
-            </div>
-          )}
-        </div>
+
 
         <div className="space-y-4">
           <div>
