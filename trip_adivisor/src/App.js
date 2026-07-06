@@ -34,6 +34,133 @@ const PreferenceSection = ({ title, options, onChange }) => {
   );
 };
 
+// Helper: Markdown parser to render styled HTML elements in React
+const parseBold = (text) => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
+const parseMarkdown = (text) => {
+  if (!text) return null;
+  const lines = text.split('\n');
+  return lines.map((line, index) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('###')) {
+      const title = trimmed.replace(/^###\s*/, '');
+      return (
+        <div key={index} className="mt-6 mb-3 border-l-4 border-blue-500 pl-3">
+          <h4 className="text-lg font-bold text-blue-700">{parseBold(title)}</h4>
+        </div>
+      );
+    }
+    if (trimmed.startsWith('##')) {
+      const title = trimmed.replace(/^##\s*/, '');
+      return (
+        <div key={index} className="mt-8 mb-4 border-b border-gray-200 pb-2">
+          <h3 className="text-xl font-bold text-gray-800">{parseBold(title)}</h3>
+        </div>
+      );
+    }
+    if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+      const item = trimmed.replace(/^[-*]\s*/, '');
+      return (
+        <li key={index} className="ml-5 list-disc text-gray-600 my-1 text-sm md:text-base leading-relaxed">
+          {parseBold(item)}
+        </li>
+      );
+    }
+    if (trimmed === '') {
+      return <div key={index} className="h-2" />;
+    }
+    return (
+      <p key={index} className="text-gray-600 my-2 text-sm md:text-base leading-relaxed">
+        {parseBold(trimmed)}
+      </p>
+    );
+  });
+};
+
+// Helper: Generates a highly customized local mock itinerary when API key is missing or fails
+const generateMockItinerary = (formData) => {
+  const { fromDestination, toDestination, fromDate, toDate, budgetMin, budgetMax, adults, children, preferences } = formData;
+  const daysCount = Math.max(1, Math.ceil((new Date(toDate) - new Date(fromDate)) / (1000 * 60 * 60 * 24)) + 1) || 3;
+  const totalTravelers = parseInt(adults) + parseInt(children);
+  
+  let result = `## Trip Itinerary: ${fromDestination} to ${toDestination}\n`;
+  result += `**Duration:** ${daysCount} Days (${fromDate} to ${toDate})\n`;
+  result += `**Travelers:** ${totalTravelers} (${adults} Adults, ${children} Children)\n`;
+  result += `**Estimated Budget:** ₹${budgetMin || '10,000'} - ₹${budgetMax || '30,000'} INR\n\n`;
+  
+  result += `Here is your custom-tailored travel plan focusing on your selected preferences:\n\n`;
+
+  const getPrefLabel = (cat, val) => {
+    const options = {
+      adventure: { 'extreme-sports': 'Extreme Sports', 'mountain-climbing': 'Mountain Climbing', 'water-sports': 'Water Sports', 'hiking': 'Hiking' },
+      food: { 'local-cuisine': 'Local Cuisine', 'street-food': 'Street Food', 'fine-dining': 'Fine Dining' },
+      sightseeing: { beaches: 'Beaches', parks: 'Parks', monuments: 'Monuments' },
+      touristAttractions: { 'historical-sites': 'Historical Sites', 'amusement-parks': 'Amusement Parks', 'wildlife-parks': 'Wildlife Parks' },
+      relaxation: { spa: 'Spa', yoga: 'Yoga', 'beach-resorts': 'Beach Resorts' }
+    };
+    return options[cat]?.[val] || val;
+  };
+
+  const activePrefs = [];
+  Object.keys(preferences).forEach(cat => {
+    preferences[cat].forEach(val => {
+      activePrefs.push(getPrefLabel(cat, val));
+    });
+  });
+
+  if (activePrefs.length > 0) {
+    result += `**Key Focus Areas:** ${activePrefs.join(', ')}\n\n`;
+  }
+
+  for (let i = 1; i <= daysCount; i++) {
+    result += `### Day ${i}: Exploring ${toDestination}\n`;
+    
+    if (preferences.adventure.length > 0 && i % 2 === 1) {
+      result += `- **Morning (Adventure):** Head out for an early session of **${getPrefLabel('adventure', preferences.adventure[i % preferences.adventure.length])}**. Ensure you bring comfortable gear and stay hydrated.\n`;
+    } else if (preferences.sightseeing.length > 0) {
+      result += `- **Morning (Sightseeing):** Visit the famous **${getPrefLabel('sightseeing', preferences.sightseeing[i % preferences.sightseeing.length])}** around ${toDestination}. Great spot for photography.\n`;
+    } else {
+      result += `- **Morning:** Start with a walking tour of central ${toDestination} and explore the local markets.\n`;
+    }
+
+    if (preferences.food.length > 0) {
+      result += `- **Lunch (Food):** Treat yourself to **${getPrefLabel('food', preferences.food[i % preferences.food.length])}** at a top-rated local dining spot.\n`;
+    } else {
+      result += `- **Lunch:** Enjoy a meal at a highly recommended local cafe serving regional specialties.\n`;
+    }
+
+    if (preferences.touristAttractions.length > 0 && i % 2 === 0) {
+      result += `- **Afternoon (Attractions):** Explore **${getPrefLabel('touristAttractions', preferences.touristAttractions[i % preferences.touristAttractions.length])}** to learn about the history and culture of the area.\n`;
+    } else if (preferences.sightseeing.length > 1) {
+      result += `- **Afternoon (Sightseeing):** Take a relaxing tour of **${getPrefLabel('sightseeing', preferences.sightseeing[1])}**.\n`;
+    } else {
+      result += `- **Afternoon:** Visit the city center, check out popular landmarks, and enjoy souvenir shopping.\n`;
+    }
+
+    if (preferences.relaxation.length > 0) {
+      result += `- **Evening (Relaxation):** Unwind with a peaceful **${getPrefLabel('relaxation', preferences.relaxation[i % preferences.relaxation.length])}** session to recharge for the next day.\n`;
+    } else {
+      result += `- **Evening:** Enjoy a quiet sunset view from a scenic viewpoint followed by dinner at a rooftop restaurant.\n`;
+    }
+    result += `\n`;
+  }
+
+  result += `## 💡 Travel Tips for ${toDestination}\n`;
+  result += `- Respect local customs and cultural guidelines.\n`;
+  result += `- Keep digital and physical copies of your travel documents.\n`;
+  result += `- Try local transportation options for an authentic experience.\n`;
+
+  return result;
+};
+
 const TripPlanner = () => {
   const [formData, setFormData] = useState({
     fromDestination: '',
@@ -54,6 +181,10 @@ const TripPlanner = () => {
   });
 
   const [itinerary, setItinerary] = useState('');
+  const [itinerarySource, setItinerarySource] = useState(''); // 'live', 'mock', 'mock-fallback'
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [showSettings, setShowSettings] = useState(false);
 
   const preferenceOptions = {
     adventure: [
@@ -104,32 +235,83 @@ const TripPlanner = () => {
     }));
   };
 
+  const handleSaveApiKey = (key) => {
+    setApiKeyInput(key);
+    if (key) {
+      localStorage.setItem('gemini_api_key', key);
+    } else {
+      localStorage.removeItem('gemini_api_key');
+    }
+  };
+
   const getTotalTravelers = () => {
     return parseInt(formData.adults) + parseInt(formData.children) || 1;
   };
 
   const handleSubmit = async () => {
-    const prompt = `Plan a trip from ${formData.fromDestination} to ${formData.toDestination} from ${formData.fromDate} to ${formData.toDate}. Budget: ₹${formData.budgetMin} - ₹${formData.budgetMax}. Total Travelers: ${getTotalTravelers()}. Preferences: ${JSON.stringify(formData.preferences)}`;
+    if (!formData.fromDestination || !formData.toDestination || !formData.fromDate || !formData.toDate) {
+      alert('Please fill in all required fields (Destinations and Dates).');
+      return;
+    }
+
+    setIsLoading(true);
+    setItinerary('');
+    setItinerarySource('');
+
+    const prompt = `Plan a detailed, multi-day travel itinerary from ${formData.fromDestination} to ${formData.toDestination} starting from ${formData.fromDate} to ${formData.toDate}.
+    Budget: ₹${formData.budgetMin || '10,000'} - ₹${formData.budgetMax || '30,000'} INR.
+    Total Travelers: ${getTotalTravelers()} (${formData.adults} Adults, ${formData.children} Children).
+    Preferences: ${JSON.stringify(formData.preferences)}.
+    Please format the response nicely in Markdown, using '### Day X:' for each day's headings and bullet points for activities. Include travel tips at the end.`;
+
+    const activeKey = apiKeyInput || process.env.REACT_APP_GEMINI_API_KEY;
+
+    if (!activeKey) {
+      // Demo mode / Fallback immediately
+      setTimeout(() => {
+        const mockItinerary = generateMockItinerary(formData);
+        setItinerary(mockItinerary);
+        setItinerarySource('mock');
+        setIsLoading(false);
+      }, 800);
+      return;
+    }
 
     try {
       const response = await axios.post(
-        'https://generativelanguage.googleapis.com',
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`,
         {
-          prompt: prompt,
-          temperature: 0.7,
-          max_tokens: 500
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ]
         },
         {
           headers: {
-            'Authorization': `Bearer AIzaSyA2-lapRbxlszgWOEhAYIPc51wV3sDLs6M`, // Replace with your actual API key
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      setItinerary(response.data.itinerary);
+      if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        setItinerary(response.data.candidates[0].content.parts[0].text);
+        setItinerarySource('live');
+      } else {
+        throw new Error('Unexpected response structure');
+      }
     } catch (error) {
-      console.error('Error generating itinerary:', error);
-      alert('Error generating itinerary. Please try again.');
+      console.error('Error generating itinerary with Gemini API:', error);
+      // Fallback to local generator
+      const mockItinerary = generateMockItinerary(formData);
+      setItinerary(mockItinerary);
+      setItinerarySource('mock-fallback');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -139,6 +321,76 @@ const TripPlanner = () => {
         <h1 className="text-2xl md:text-3xl text-center text-blue-500 font-bold mb-6">
           AI Trip Planner
         </h1>
+
+        {/* API Settings Section */}
+        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg" style={{ fontSize: '14px' }}>
+          <button 
+            type="button" 
+            onClick={() => setShowSettings(!showSettings)}
+            className="w-full flex justify-between items-center text-gray-700 font-semibold transition-colors"
+            style={{ 
+              padding: '6px 12px', 
+              margin: 0, 
+              backgroundColor: 'transparent', 
+              color: '#4a5568',
+              border: 'none',
+              boxShadow: 'none',
+              width: '100%',
+              display: 'flex',
+              textAlign: 'left'
+            }}
+          >
+            <span style={{ fontWeight: '600' }}>⚙️ API Settings {apiKeyInput ? ' (Key Saved)' : ' (Demo/Simulation Mode)'}</span>
+            <span>{showSettings ? '▲' : '▼'}</span>
+          </button>
+          
+          {showSettings && (
+            <div className="mt-3 pt-3 border-t border-gray-200" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <p className="text-xs text-gray-500" style={{ margin: 0, fontSize: '11px', color: '#718096' }}>
+                Enter your Google Gemini API Key. If left empty, the app uses <strong>Demo Mode</strong> with realistic local travel plans.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={apiKeyInput}
+                  onChange={(e) => handleSaveApiKey(e.target.value)}
+                  style={{ 
+                    flexGrow: 1, 
+                    padding: '8px 12px', 
+                    border: '1px solid #cbd5e0', 
+                    borderRadius: '6px', 
+                    fontSize: '13px',
+                    margin: 0
+                  }}
+                />
+                {apiKeyInput && (
+                  <button
+                    type="button"
+                    onClick={() => handleSaveApiKey('')}
+                    style={{ 
+                      padding: '8px 16px', 
+                      backgroundColor: '#e53e3e', 
+                      color: 'white', 
+                      borderRadius: '6px', 
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      border: 'none',
+                      margin: 0,
+                      width: 'auto',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-400" style={{ margin: 0, fontSize: '10px', color: '#a0aec0' }}>
+                Saved locally in your browser storage. Never sent to any external server.
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4">
           <div>
@@ -264,20 +516,78 @@ const TripPlanner = () => {
 
           <button
             onClick={handleSubmit}
-            className="w-full p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-lg font-semibold transition-colors"
+            disabled={isLoading}
+            className={`w-full p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-lg font-semibold transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{ 
+              textAlign: 'center', 
+              display: 'block', 
+              margin: '24px 0', 
+              backgroundColor: '#38a169', 
+              color: 'white',
+              border: 'none',
+              width: '100%',
+              padding: '14px',
+              borderRadius: '8px',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
           >
-            Generate Itinerary
+            {isLoading ? 'Generating Itinerary...' : 'Generate Itinerary'}
           </button>
 
+          {/* Itinerary Display */}
           {itinerary && (
-            <div className="mt-6">
-              <h3 className="text-xl font-semibold text-gray-700">Generated Itinerary</h3>
-              <textarea
-                readOnly
-                value={itinerary}
-                className="w-full p-3 border rounded-lg mt-3 text-sm text-gray-600"
-                rows={10}
-              />
+            <div className="mt-8 pt-6 border-t-2 border-gray-100" style={{ textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px', width: '100%' }}>
+                <h3 className="text-xl font-bold text-gray-800" style={{ margin: 0, flexGrow: 1, fontSize: '22px' }}>Generated Itinerary</h3>
+                {itinerarySource === 'live' && (
+                  <span style={{ padding: '4px 12px', backgroundColor: '#c6f6d5', color: '#22543d', fontSize: '12px', fontWeight: '600', borderRadius: '9999px', border: '1px solid #b2f5ea' }}>
+                    ✨ Live Gemini AI
+                  </span>
+                )}
+                {itinerarySource === 'mock' && (
+                  <span style={{ padding: '4px 12px', backgroundColor: '#ebf8ff', color: '#2b6cb0', fontSize: '12px', fontWeight: '600', borderRadius: '9999px', border: '1px solid #bee3f8' }}>
+                    🤖 Demo Mode (Simulated)
+                  </span>
+                )}
+                {itinerarySource === 'mock-fallback' && (
+                  <span style={{ padding: '4px 12px', backgroundColor: '#feebc8', color: '#744210', fontSize: '12px', fontWeight: '600', borderRadius: '9999px', border: '1px solid #fbd38d' }}>
+                    ⚠️ API Error (Fallback Demo)
+                  </span>
+                )}
+              </div>
+              
+              <div style={{ backgroundColor: '#f7fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
+                <div>
+                  {parseMarkdown(itinerary)}
+                </div>
+              </div>
+
+              <div className="mt-4" style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(itinerary);
+                    alert('Itinerary copied to clipboard!');
+                  }}
+                  style={{ 
+                    padding: '10px 16px', 
+                    backgroundColor: '#3182ce', 
+                    color: 'white', 
+                    borderRadius: '8px', 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    border: 'none',
+                    margin: 0,
+                    width: 'auto',
+                    cursor: 'pointer',
+                    textAlign: 'center'
+                  }}
+                >
+                  Copy to Clipboard
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -287,3 +597,4 @@ const TripPlanner = () => {
 };
 
 export default TripPlanner;
+
